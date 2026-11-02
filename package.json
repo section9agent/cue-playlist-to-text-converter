@@ -1,0 +1,17 @@
+{
+  "name": "discogs-tracklist-tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn cue sheets and playlists into tracklists you can paste into Discogs.",
+  "scripts": {
+    "test": "node --test tests/engine.test.js",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "icons": "tauri icon app-icon.png",
+    "bump": "node scripts/bump-version.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

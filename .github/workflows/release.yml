@@ -1,0 +1,170 @@
+name: Release
+
+# Builds the app for Windows, macOS (Apple Silicon and Intel) and Linux,
+# then attaches everything to a DRAFT release. Nothing is published until
+# you open the draft on GitHub and press "Publish release".
+#
+# Start it by pushing a tag that matches the app version (for example v0.1.0),
+# or run it by hand from the Actions tab.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  create-release:
+    name: Create draft release
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.draft.outputs.release_id }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the app version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check the tag matches the app version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [ "$GITHUB_REF_NAME" != "v${{ steps.version.outputs.version }}" ]; then
+            echo "::error::The tag is $GITHUB_REF_NAME but the app version is ${{ steps.version.outputs.version }}. Run 'npm run bump -- <version>', commit, and tag again."
+            exit 1
+          fi
+
+      - name: Create or reuse the draft release
+        id: draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+            --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\"" | head -n 1 || true)
+
+          if [ -n "$existing" ]; then
+            id="${existing% *}"
+            is_draft="${existing#* }"
+            if [ "$is_draft" != "true" ]; then
+              echo "::error::Release $TAG is already published. Bump the version to make a new release."
+              exit 1
+            fi
+            echo "Reusing draft release $TAG ($id)"
+            gh release edit "$TAG" --notes-file RELEASE_NOTES.md --title "Discogs Tracklist Tool $TAG"
+          else
+            gh release create "$TAG" \
+              --draft \
+              --title "Discogs Tracklist Tool $TAG" \
+              --notes-file RELEASE_NOTES.md \
+              --target "$GITHUB_SHA"
+            id=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+              --jq ".[] | select(.tag_name == \"$TAG\" and .draft == true) | .id" | head -n 1)
+          fi
+
+          if [ -z "${id:-}" ]; then
+            echo "::error::Could not find the draft release id."
+            exit 1
+          fi
+          echo "release_id=$id" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build (${{ matrix.name }})
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple Silicon
+            os: macos-latest
+            rust_targets: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin
+          - name: macOS Intel
+            os: macos-latest
+            rust_targets: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin
+          - name: Linux
+            os: ubuntu-22.04
+            rust_targets: ''
+            args: ''
+          - name: Windows
+            os: windows-latest
+            rust_targets: ''
+            args: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux libraries
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.name }}
+
+      - run: npm ci
+
+      - name: Build and upload to the draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+  summary:
+    name: Draft ready
+    needs: [create-release, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Point to the draft
+        run: |
+          {
+            echo "### Draft release ${{ needs.create-release.outputs.tag }} is ready"
+            echo
+            echo "Open **Releases** in the repository, check the files, then press **Publish release**."
+          } >> "$GITHUB_STEP_SUMMARY"

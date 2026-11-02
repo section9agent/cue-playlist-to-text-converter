@@ -1,0 +1,6 @@
+<asx version="3.0">
+  <title>Sample Album</title>
+  <entry><title>Opening</title><author>Example Artist</author><ref href="music/01.wma"/><duration value="00:03:45"/></entry>
+  <entry><title>Second Light</title><author>Example Artist</author><ref href="music/02.wma"/><duration value="00:04:24"/></entry>
+  <entry><ref href="music/03 Closing.wma"/></entry>
+</asx>

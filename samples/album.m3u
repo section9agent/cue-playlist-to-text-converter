@@ -1,0 +1,8 @@
+#EXTM3U
+#PLAYLIST:Sample Mix
+#EXTINF:225,Example Artist - Opening
+music/01 Example Artist - Opening.mp3
+#EXTINF:264,Other Act - Second Light
+music/02 Other Act - Second Light.mp3
+#EXTINF:-1,Third Act - Closing, Part 1
+music/03 Third Act - Closing, Part 1.mp3

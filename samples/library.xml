@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0"><dict>
+<key>Tracks</key><dict>
+ <key>101</key><dict><key>Track ID</key><integer>101</integer><key>Name</key><string>Opening</string><key>Artist</key><string>Example Artist</string><key>Album</key><string>Sample Album</string><key>Track Number</key><integer>1</integer><key>Total Time</key><integer>225000</integer></dict>
+ <key>102</key><dict><key>Track ID</key><integer>102</integer><key>Name</key><string>Second Light</string><key>Artist</key><string>Example Artist</string><key>Album</key><string>Sample Album</string><key>Track Number</key><integer>2</integer><key>Total Time</key><integer>264400</integer></dict>
+ <key>103</key><dict><key>Track ID</key><integer>103</integer><key>Name</key><string>Closing</string><key>Artist</key><string>Other Act</string><key>Album</key><string>Elsewhere</string><key>Track Number</key><integer>3</integer><key>Total Time</key><integer>301000</integer></dict>
+</dict>
+<key>Playlists</key><array>
+ <dict><key>Name</key><string>Library</string><key>Master</key><true/><key>Playlist Items</key><array><dict><key>Track ID</key><integer>101</integer></dict></array></dict>
+ <dict><key>Name</key><string>Road Trip</string><key>Playlist Items</key><array><dict><key>Track ID</key><integer>103</integer></dict><dict><key>Track ID</key><integer>101</integer></dict></array></dict>
+ <dict><key>Name</key><string>Sample Album</string><key>Playlist Items</key><array><dict><key>Track ID</key><integer>101</integer></dict><dict><key>Track ID</key><integer>102</integer></dict></array></dict>
+</array></dict></plist>

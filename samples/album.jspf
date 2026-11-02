@@ -1,0 +1,5 @@
+{"playlist":{"title":"Sample Album","creator":"Example Artist","track":[
+  {"title":"Opening","creator":"Example Artist","duration":225000,"trackNum":1},
+  {"title":"Second Light","creator":"Example Artist","duration":264000,"trackNum":2},
+  {"title":"Closing","creator":"Example Artist","location":["file:///music/03.mp3"]}
+]}}

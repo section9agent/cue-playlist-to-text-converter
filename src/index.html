@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Discogs Tracklist Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Discogs Tracklist Tool</h1>
+      <p class="sub">Turn a cue sheet or playlist into a tracklist you can paste into Discogs.</p>
+    </div>
+    <button id="themeBtn" class="ghost" title="Switch light / dark" aria-label="Switch light or dark theme">Theme</button>
+  </header>
+
+  <main>
+    <section class="card" id="inputCard">
+      <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose a file or drop one here">
+        <input id="file" type="file" hidden
+          accept=".cue,.m3u,.m3u8,.pls,.xspf,.jspf,.wpl,.zpl,.smil,.asx,.wax,.wvx,.b4s,.mpcpl,.xml,.plist,.csv,.tsv,.tab,.txt,.json,text/plain" />
+        <strong id="fileName">Open a file, or drop one here</strong>
+        <span class="hint">CUE, M3U, M3U8, PLS, XSPF, JSPF, WPL, ZPL, ASX, B4S, MPCPL, iTunes / Apple Music XML, CSV, TSV, TXT</span>
+      </div>
+      <details id="pasteBox">
+        <summary>Or paste text</summary>
+        <textarea id="pasteText" rows="6" spellcheck="false" placeholder="Paste a cue sheet, playlist or a list of tracks here"></textarea>
+        <div class="row"><button id="pasteGo">Read pasted text</button></div>
+      </details>
+      <div id="detected" class="detected" hidden></div>
+    </section>
+
+    <section class="card" id="warnCard" hidden>
+      <ul id="warnings" class="warnings"></ul>
+    </section>
+
+    <section class="card" id="optionsCard" hidden>
+      <h2>Options</h2>
+      <div class="grid">
+        <label>Output style
+          <select id="template">
+            <option value="dash">1 - Artist - Title 3:45</option>
+            <option value="dot">1. Artist - Title 3:45</option>
+            <option value="tab">Tab separated columns</option>
+            <option value="csv">CSV with header</option>
+          </select>
+        </label>
+        <label>Track positions
+          <select id="positions">
+            <option value="sequential">1, 2, 3</option>
+            <option value="source">As in the file</option>
+            <option value="vinyl">Vinyl sides (A1, A2, B1)</option>
+            <option value="multidisc">Multiple discs (1-1, 1-2, 2-1)</option>
+            <option value="none">No positions</option>
+          </select>
+        </label>
+        <label id="splitsWrap" hidden><span id="splitsLabel">Tracks per side</span>
+          <input id="splits" type="text" placeholder="5, 5" inputmode="numeric" />
+        </label>
+        <label>Artist on each track
+          <select id="includeArtist">
+            <option value="auto">Only when artists differ</option>
+            <option value="always">Always</option>
+            <option value="never">Never</option>
+          </select>
+        </label>
+        <label>Split "Artist - Title"
+          <select id="splitArtist">
+            <option value="auto">Automatic</option>
+            <option value="yes">Always</option>
+            <option value="no">Never</option>
+          </select>
+        </label>
+        <label id="totalWrap" hidden>Total length of the disc
+          <input id="total" type="text" placeholder="e.g. 62:14" />
+        </label>
+        <label id="plistWrap" hidden>Playlist
+          <select id="plistName"></select>
+        </label>
+        <label class="check"><input id="includeDuration" type="checkbox" checked /> Include durations</label>
+      </div>
+    </section>
+
+    <section class="card" id="releaseCard" hidden>
+      <h2>Release details found in the file</h2>
+      <p class="hint">Copy these into the matching fields on the Discogs form.</p>
+      <dl id="release" class="release"></dl>
+    </section>
+
+    <section class="card" id="tableCard" hidden>
+      <div class="row between">
+        <h2>Tracks <span id="count" class="muted"></span></h2>
+        <span class="hint">Click a cell to fix it</span>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th class="pos">Pos</th><th>Artist</th><th>Title</th><th class="dur">Length</th><th class="act"></th></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="outputCard" hidden>
+      <div class="row between">
+        <h2>Tracklist</h2>
+        <div class="row">
+          <button id="copyBtn">Copy</button>
+          <button id="saveBtn" class="ghost">Save as .txt</button>
+        </div>
+      </div>
+      <textarea id="output" rows="10" readonly spellcheck="false"></textarea>
+      <p id="status" class="status" role="status"></p>
+      <p class="hint">In the Discogs Edit Helper panel, open Tracklist Import, paste this, and apply it.</p>
+    </section>
+  </main>
+
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

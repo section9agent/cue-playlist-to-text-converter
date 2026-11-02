@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<smil>
+  <head><meta name="Generator" content="Test"/><author>Example Artist</author><title>Sample Album</title></head>
+  <body><seq>
+    <media src="music\01 Opening.mp3" trackTitle="Opening" trackArtist="Example Artist" duration="225000"/>
+    <media src="music\02 Second Light.mp3" trackTitle="Second Light" trackArtist="Example Artist" duration="264000"/>
+    <media src="music\03 Closing.mp3"/>
+  </seq></body>
+</smil>

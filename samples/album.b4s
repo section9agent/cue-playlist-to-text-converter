@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<WasabiPlaylist playlist_name="Sample Album" num_entries="3">
+  <entry Playstring="file:C:\Music\01.mp3"><Name>Example Artist - Opening</Name><Length>225</Length></entry>
+  <entry Playstring="file:C:\Music\02.mp3"><Name>Example Artist - Second Light</Name><Length>264</Length></entry>
+  <entry Playstring="file:C:\Music\03.mp3"><Name>Example Artist - Closing</Name><Length>-1</Length></entry>
+</WasabiPlaylist>
