@@ -5,8 +5,8 @@
   --muted: #6c675e;
   --border: #e0dbd1;
   --field: #faf8f4;
-  --accent: #b5441e;
-  --accent-hover: #983716;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
   --accent-text: #ffffff;
   --warn-bg: #fff4dc;
   --warn-border: #ecc977;
@@ -16,13 +16,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #16140f; --panel: #201d16; --text: #ece7dc; --muted: #a49d8e; --border: #38332a;
-    --field: #1a1710; --accent: #e07a45; --accent-hover: #ef8d59; --accent-text: #1a1008;
+    --field: #1a1710; --accent: #6aa5ff; --accent-hover: #8dbbff; --accent-text: #0a1426;
     --warn-bg: #3a2f14; --warn-border: #7a6224; --ok: #6fc283; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #16140f; --panel: #201d16; --text: #ece7dc; --muted: #a49d8e; --border: #38332a;
-  --field: #1a1710; --accent: #e07a45; --accent-hover: #ef8d59; --accent-text: #1a1008;
+  --field: #1a1710; --accent: #6aa5ff; --accent-hover: #8dbbff; --accent-text: #0a1426;
   --warn-bg: #3a2f14; --warn-border: #7a6224; --ok: #6fc283; color-scheme: dark;
 }
 
@@ -81,7 +81,6 @@ button:hover { background: var(--accent-hover); border-color: var(--accent-hover
 button.ghost { background: transparent; color: var(--text); border-color: var(--border); }
 button.ghost:hover { background: var(--field); }
 button.mini { padding: 2px 9px; font-size: .8rem; }
-#pasteBox .row { margin-top: 8px; }
 
 .release { display: grid; grid-template-columns: max-content 1fr max-content; gap: 6px 12px; margin: 8px 0 0; align-items: center; }
 .release dt { color: var(--muted); font-size: .86rem; }

@@ -5,7 +5,7 @@
   const $ = (id) => document.getElementById(id);
 
   const els = {
-    drop: $('drop'), file: $('file'), fileName: $('fileName'), pasteText: $('pasteText'), pasteGo: $('pasteGo'),
+    drop: $('drop'), file: $('file'), fileName: $('fileName'),
     detected: $('detected'), warnCard: $('warnCard'), warnings: $('warnings'),
     optionsCard: $('optionsCard'), template: $('template'), positions: $('positions'),
     splitsWrap: $('splitsWrap'), splitsLabel: $('splitsLabel'), splits: $('splits'),
@@ -14,7 +14,7 @@
     includeDuration: $('includeDuration'),
     releaseCard: $('releaseCard'), release: $('release'),
     tableCard: $('tableCard'), tbody: $('tbody'), count: $('count'),
-    outputCard: $('outputCard'), output: $('output'), copyBtn: $('copyBtn'), saveBtn: $('saveBtn'),
+    outputCard: $('outputCard'), output: $('output'), copyBtn: $('copyBtn'), saveBtn: $('saveBtn'), saveCsvBtn: $('saveCsvBtn'),
     status: $('status'), themeBtn: $('themeBtn')
   };
 
@@ -46,6 +46,7 @@
     state.source = { bytes: bytes, name: name };
     state.baseName = name.replace(/\.[^.]+$/, '') || 'tracklist';
     els.fileName.textContent = name;
+    els.total.value = ''; // a disc length belongs to one disc, never carry it to the next file
     reparse();
   }
 
@@ -53,6 +54,7 @@
     state.source = { bytes: new TextEncoder().encode(text), name: name };
     state.baseName = 'tracklist';
     els.fileName.textContent = 'Pasted text';
+    els.total.value = '';
     reparse();
   }
 
@@ -82,7 +84,6 @@
   els.drop.addEventListener('click', () => els.file.click());
   els.drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); els.file.click(); } });
   els.file.addEventListener('change', () => { if (els.file.files[0]) readFile(els.file.files[0]); els.file.value = ''; });
-  els.pasteGo.addEventListener('click', () => { if (els.pasteText.value.trim()) loadText(els.pasteText.value, 'pasted.txt'); });
 
   window.addEventListener('dragover', (e) => { e.preventDefault(); els.drop.classList.add('over'); });
   window.addEventListener('dragleave', (e) => { if (!e.relatedTarget) els.drop.classList.remove('over'); });
@@ -202,7 +203,7 @@
 
   function renderTable() {
     els.tbody.innerHTML = '';
-    els.count.textContent = state.tracks.length ? '(' + state.tracks.length + ')' : '';
+    updateCount();
     const rows = E.formatTracklist(state.tracks, formatOptions()).rows;
     state.tracks.forEach((t, i) => {
       const tr = document.createElement('tr');
@@ -221,6 +222,20 @@
       tr.appendChild(act);
       els.tbody.appendChild(tr);
     });
+  }
+
+  // "(12 tracks, 45:10 total)" next to the Tracks heading, kept current as cells are edited
+  function updateCount() {
+    const n = state.tracks.length;
+    if (!n) { els.count.textContent = ''; return; }
+    const csv = E.formatCsv(state.tracks, formatOptions());
+    let s = n + (n === 1 ? ' track' : ' tracks');
+    if (csv.missing === n) s += ', no lengths';
+    else {
+      s += ', ' + E.formatDuration(csv.totalSeconds) + ' total';
+      if (csv.missing) s += ' (' + csv.missing + ' without a length)';
+    }
+    els.count.textContent = '(' + s + ')';
   }
 
   function cell(t, field, placeholder) {
@@ -256,6 +271,7 @@
     els.output.value = out.text;
     renderWarnings(out.warnings);
     refreshPositions();
+    updateCount();
     els.status.textContent = '';
     els.status.className = 'status';
   }
@@ -292,26 +308,38 @@
     say(ok ? 'Copied to the clipboard.' : 'Could not reach the clipboard. The text is selected, press Ctrl+C (Cmd+C on Mac).', !ok);
   });
 
-  els.saveBtn.addEventListener('click', async () => {
-    const text = els.output.value;
-    const ext = els.template.value === 'csv' ? 'csv' : els.template.value === 'tab' ? 'tsv' : 'txt';
-    const name = state.baseName + '-discogs.' + ext;
+  async function saveFile(text, name, ext, mime) {
     const T = window.__TAURI__;
     try {
       if (T && T.dialog && T.core) {
         const path = await T.dialog.save({ defaultPath: name, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] });
-        if (!path) return;
+        if (!path) return false;
         await T.core.invoke('save_text', { path: path, contents: text });
         say('Saved to ' + path);
       } else {
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+        a.href = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' }));
         a.download = name;
         document.body.appendChild(a); a.click(); a.remove();
         say('Saved ' + name);
       }
+      return true;
     } catch (err) {
       say('Could not save the file: ' + (err && err.message ? err.message : err), true);
+      return false;
     }
+  }
+
+  els.saveBtn.addEventListener('click', () => {
+    const ext = els.template.value === 'tab' ? 'tsv' : 'txt';
+    saveFile(els.output.value, state.baseName + '-tracklist.' + ext, ext, 'text/plain');
+  });
+
+  // CSV: Track Number, Artist, Song Name, Track Length and a Total Run Time row.
+  // A leading byte order mark makes Excel read accented characters correctly.
+  els.saveCsvBtn.addEventListener('click', async () => {
+    const csv = E.formatCsv(state.tracks, formatOptions());
+    const saved = await saveFile('﻿' + csv.text, state.baseName + '.csv', 'csv', 'text/csv');
+    if (saved && csv.warnings.length) say(els.status.textContent + ' ' + csv.warnings[csv.warnings.length - 1]);
   });
 })();

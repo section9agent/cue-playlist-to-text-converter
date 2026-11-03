@@ -1,17 +1,28 @@
-# Discogs Tracklist Tool
+# Cue/Playlist to Text Converter
 
-A small desktop app (Tauri, no browser needed) that turns a cue sheet or playlist into a tracklist you can paste into Discogs.
+A small desktop app (Tauri, no browser needed) that turns a cue sheet or playlist into a text tracklist or a CSV file with the total run time.
 
-Discogs does not allow other programs to create new releases, so this tool does the typing-heavy part: it reads your file, works out positions, artists, titles and lengths, and gives you text to paste into the Add Release page (for example through the Discogs Edit Helper extension's Tracklist Import).
+It was built to save the typing when adding a release to Discogs. Discogs does not allow other programs to create new releases, so the app prepares the text and you paste it into the Add Release page (for example through the Discogs Edit Helper extension's Tracklist Import).
 
 ## Using the app
 
-1. Open a file (button, drag and drop, or paste text anywhere in the window).
-2. Check the table. Click any cell to fix it, or press x to drop a track.
+1. Open a file (button or drag and drop), or just paste text with Ctrl+V (Cmd+V on a Mac).
+2. Check the table. Click any cell to fix it, or press x to drop a track. The total run time shows next to the track count.
 3. Pick the numbering you want: `1, 2, 3`, vinyl sides, or multiple discs. For sides or discs, type how many tracks are on each, for example `5, 5`.
-4. Press **Copy** and paste into Discogs.
+4. Press **Copy** or **Save as text**, or press **Save CSV**.
 
-The default output looks like `1 - Title 3:45`, which matches the shape shown in the Edit Helper's documentation. If a line is not picked up as you expect, try the `1. Artist - Title` style.
+**Save CSV** writes these columns, with a **Total Run Time** row at the bottom:
+
+```
+Track Number,Artist,Song Name,Track Length
+1,Example Artist,Opening,3:45
+2,Example Artist,Second Light,4:24
+,,Total Run Time,8:09
+```
+
+Every row gets an artist (the album artist fills any gap) and a length. Track numbers follow the numbering option, so vinyl sides come out as A1, A2, B1. If a track has no length, the total leaves it out and the app tells you.
+
+The default text output looks like `1 - Title 3:45`, which matches the shape shown in the Discogs Edit Helper's documentation. If a line is not picked up as you expect, try the `1. Artist - Title` style.
 
 ### Supported files
 
@@ -42,9 +53,11 @@ npm run dev       # run the app
 npm run build     # build installers for your own system
 ```
 
-The interface is plain HTML, CSS and JavaScript in `src/` with no build step. All the parsing lives in `src/engine.js`, which is tested by `tests/engine.test.js` against the files in `samples/`. The Rust side (`src-tauri/src/main.rs`) only opens the window and writes the file chosen in the Save dialog.
+The interface is plain HTML, CSS and JavaScript in `src/` with no build step. All the parsing and output formatting lives in `src/engine.js`, which is tested by `tests/engine.test.js` against the files in `samples/`. The Rust side (`src-tauri/src/main.rs`) only opens the window and writes the file chosen in the Save dialog.
 
-To change the icon, replace `app-icon.png` (1024 x 1024) and run `npm run icons`. The app identifier is set in `src-tauri/tauri.conf.json` (`dev.tracklisttool.discogs`); change it before shipping if you want your own.
+To change the icon, replace `app-icon.png` (1024 x 1024, a transparent background works well) and run `npm run icons`. The app identifier is set in `src-tauri/tauri.conf.json` (`dev.tracklisttool.discogs`); change it before shipping if you want your own.
+
+The window and release title use the name with a slash. The installed app and installer files are called "Cue Playlist to Text Converter", because a slash cannot be part of a file name (`productName` in `tauri.conf.json`).
 
 ## Releasing
 

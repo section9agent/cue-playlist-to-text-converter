@@ -961,10 +961,6 @@
     let lines;
     if (template === 'tab') {
       lines = rows.map(function (r) { return [r.position, r.artist, r.title, r.duration].join('\t'); });
-    } else if (template === 'csv') {
-      lines = ['Position,Artist,Title,Duration'].concat(rows.map(function (r) {
-        return [r.position, r.artist, r.title, r.duration].map(csvQuote).join(',');
-      }));
     } else {
       const sep = template === 'dot' ? '. ' : ' - ';
       lines = rows.map(function (r) {
@@ -977,6 +973,32 @@
     return { text: lines.join('\n'), rows: rows, warnings: warnings, showArtist: showArtist };
   }
 
+  /*
+   * CSV export: Track Number, Artist, Song Name, Track Length, then a last row with the
+   * total run time. Every track gets an artist (the release artist fills any gaps) and
+   * a length column, whatever the text output options are.
+   */
+  function formatCsv(tracks, opts) {
+    opts = opts || {};
+    const warnings = [];
+    const positions = buildPositions(tracks, opts, warnings).map(function (p, i) { return p || String(i + 1); });
+    const albumArtist = clean(opts.albumArtist || '');
+    let total = 0;
+    let missing = 0;
+    const lines = [['Track Number', 'Artist', 'Song Name', 'Track Length'].map(csvQuote).join(',')];
+    tracks.forEach(function (t, i) {
+      if (t.seconds == null) missing++; else total += Math.round(t.seconds);
+      lines.push([positions[i], t.artist || albumArtist, t.title, formatDuration(t.seconds)].map(csvQuote).join(','));
+    });
+    const noLengths = tracks.length === 0 || missing === tracks.length;
+    const totalCell = noLengths ? '' : formatDuration(total);
+    lines.push(['', '', 'Total Run Time', totalCell].map(csvQuote).join(','));
+    if (missing && missing < tracks.length) {
+      warnings.push(missing + ' track(s) have no length, so the total run time leaves them out.');
+    }
+    return { text: lines.join('\r\n') + '\r\n', totalSeconds: total, missing: missing, warnings: warnings };
+  }
+
   return {
     decodeBytes: decodeBytes,
     detectFormat: detectFormat,
@@ -985,6 +1007,7 @@
     parseDuration: parseDuration,
     formatDuration: formatDuration,
     formatTracklist: formatTracklist,
+    formatCsv: formatCsv,
     parseSplits: parseSplits,
     FORMAT_NAMES: FORMAT_NAMES
   };

@@ -250,8 +250,50 @@ test('output: styles and duration toggle', () => {
   assert.equal(dot.text.split('\n')[0], '1. Opening');
   const tab = E.formatTracklist(sampleTracks(), { template: 'tab' });
   assert.equal(tab.text.split('\n')[1], '2\t\tSecond Light\t4:24');
-  const csv = E.formatTracklist([{ artist: '', title: 'Say "Hi", ok', seconds: 5 }], { template: 'csv' });
-  assert.equal(csv.text, 'Position,Artist,Title,Duration\n1,,"Say ""Hi"", ok",0:05');
+});
+
+test('csv export: header, rows and a total run time row', () => {
+  const o = E.formatCsv(sampleTracks(), {});
+  assert.equal(
+    o.text,
+    'Track Number,Artist,Song Name,Track Length\r\n' +
+    '1,Example Artist,Opening,3:45\r\n' +
+    '2,Example Artist,Second Light,4:24\r\n' +
+    '3,Example Artist,Closing,5:01\r\n' +
+    ',,Total Run Time,13:10\r\n'
+  );
+  assert.equal(o.totalSeconds, 790);
+  assert.equal(o.warnings.length, 0);
+});
+
+test('csv export: quoting, release artist fallback, positions follow the options', () => {
+  const t = [
+    { artist: '', title: 'Say "Hi", ok', seconds: 5 },
+    { artist: 'Other Act', title: 'Plain', seconds: 65 }
+  ];
+  const o = E.formatCsv(t, { albumArtist: 'Main Artist', positions: 'vinyl', splits: '1, 1' });
+  const lines = o.text.trim().split('\r\n');
+  assert.equal(lines[1], 'A1,Main Artist,"Say ""Hi"", ok",0:05');
+  assert.equal(lines[2], 'B1,Other Act,Plain,1:05');
+  assert.equal(lines[3], ',,Total Run Time,1:10');
+});
+
+test('csv export: totals over an hour, missing lengths, and no positions', () => {
+  const t = [
+    { artist: 'A', title: 'Long', seconds: 3600 },
+    { artist: 'A', title: 'Short', seconds: 125 },
+    { artist: 'A', title: 'Unknown', seconds: null }
+  ];
+  const o = E.formatCsv(t, { positions: 'none' });
+  const lines = o.text.trim().split('\r\n');
+  assert.equal(lines[1], '1,A,Long,1:00:00');
+  assert.equal(lines[3], '3,A,Unknown,');
+  assert.equal(lines[4], ',,Total Run Time,1:02:05');
+  assert.equal(o.missing, 1);
+  assert.ok(o.warnings.some((w) => /no length/.test(w)));
+  const none = E.formatCsv([{ artist: 'A', title: 'x', seconds: null }], {});
+  assert.equal(none.text.trim().split('\r\n')[2], ',,Total Run Time,');
+  assert.equal(E.formatCsv([], {}).text, 'Track Number,Artist,Song Name,Track Length\r\n,,Total Run Time,\r\n');
 });
 
 test('output: vinyl sides and multi-disc numbering', () => {

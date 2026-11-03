@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Discogs Tracklist Tool",
+  "productName": "Cue Playlist to Text Converter",
   "version": "0.1.0",
   "identifier": "dev.tracklisttool.discogs",
   "build": {
@@ -11,7 +11,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Discogs Tracklist Tool",
+        "title": "Cue/Playlist to Text Converter",
         "width": 1000,
         "height": 800,
         "minWidth": 720,
@@ -27,7 +27,7 @@
     "active": true,
     "targets": "all",
     "category": "Utility",
-    "shortDescription": "Cue sheets and playlists to Discogs tracklists",
+    "shortDescription": "Turn cue sheets and playlists into text tracklists and CSV files",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

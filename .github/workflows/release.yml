@@ -76,11 +76,11 @@ jobs:
               exit 1
             fi
             echo "Reusing draft release $TAG ($id)"
-            gh release edit "$TAG" --notes-file RELEASE_NOTES.md --title "Discogs Tracklist Tool $TAG"
+            gh release edit "$TAG" --notes-file RELEASE_NOTES.md --title "Cue/Playlist to Text Converter $TAG"
           else
             gh release create "$TAG" \
               --draft \
-              --title "Discogs Tracklist Tool $TAG" \
+              --title "Cue/Playlist to Text Converter $TAG" \
               --notes-file RELEASE_NOTES.md \
               --target "$GITHUB_SHA"
             id=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \

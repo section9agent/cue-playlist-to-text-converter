@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Discogs Tracklist Tool</title>
+  <title>Cue/Playlist to Text Converter</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="top">
     <div>
-      <h1>Discogs Tracklist Tool</h1>
-      <p class="sub">Turn a cue sheet or playlist into a tracklist you can paste into Discogs.</p>
+      <h1>Cue/Playlist to Text Converter</h1>
+      <p class="sub">Turn a cue sheet or playlist into a text tracklist, or save it as a CSV with the total run time.</p>
     </div>
     <button id="themeBtn" class="ghost" title="Switch light / dark" aria-label="Switch light or dark theme">Theme</button>
   </header>
@@ -20,14 +20,9 @@
       <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose a file or drop one here">
         <input id="file" type="file" hidden
           accept=".cue,.m3u,.m3u8,.pls,.xspf,.jspf,.wpl,.zpl,.smil,.asx,.wax,.wvx,.b4s,.mpcpl,.xml,.plist,.csv,.tsv,.tab,.txt,.json,text/plain" />
-        <strong id="fileName">Open a file, or drop one here</strong>
+        <strong id="fileName">Open a file, drop one here, or paste text</strong>
         <span class="hint">CUE, M3U, M3U8, PLS, XSPF, JSPF, WPL, ZPL, ASX, B4S, MPCPL, iTunes / Apple Music XML, CSV, TSV, TXT</span>
       </div>
-      <details id="pasteBox">
-        <summary>Or paste text</summary>
-        <textarea id="pasteText" rows="6" spellcheck="false" placeholder="Paste a cue sheet, playlist or a list of tracks here"></textarea>
-        <div class="row"><button id="pasteGo">Read pasted text</button></div>
-      </details>
       <div id="detected" class="detected" hidden></div>
     </section>
 
@@ -43,7 +38,6 @@
             <option value="dash">1 - Artist - Title 3:45</option>
             <option value="dot">1. Artist - Title 3:45</option>
             <option value="tab">Tab separated columns</option>
-            <option value="csv">CSV with header</option>
           </select>
         </label>
         <label>Track positions
@@ -108,7 +102,8 @@
         <h2>Tracklist</h2>
         <div class="row">
           <button id="copyBtn">Copy</button>
-          <button id="saveBtn" class="ghost">Save as .txt</button>
+          <button id="saveBtn" class="ghost">Save as text</button>
+          <button id="saveCsvBtn" class="ghost">Save CSV</button>
         </div>
       </div>
       <textarea id="output" rows="10" readonly spellcheck="false"></textarea>
