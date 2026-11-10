@@ -58,6 +58,20 @@ jobs:
             exit 1
           fi
 
+      - name: Check the update signing key is set up
+        env:
+          SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          pubkey=$(node -p "(require('./src-tauri/tauri.conf.json').plugins.updater || {}).pubkey || ''")
+          if [ -z "$pubkey" ]; then
+            echo "::error::No update public key in src-tauri/tauri.conf.json. On your computer run 'npm install' then 'npm run updater-key', and commit the change. See the README, section 'Automatic updates'."
+            exit 1
+          fi
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "::error::The repository secret TAURI_SIGNING_PRIVATE_KEY is missing. Add it under Settings > Secrets and variables > Actions. See the README, section 'Automatic updates'."
+            exit 1
+          fi
+
       - name: Create or reuse the draft release
         id: draft
         env:
@@ -98,6 +112,7 @@ jobs:
     needs: create-release
     strategy:
       fail-fast: false
+      max-parallel: 1 # the jobs take turns so they do not overwrite each other's latest.json
       matrix:
         include:
           - name: macOS Apple Silicon
@@ -148,12 +163,21 @@ jobs:
 
       - run: npm ci
 
+      - name: Point the app at this repository and list its open source credits
+        run: |
+          node scripts/set-repo.mjs
+          node scripts/generate-credits.mjs
+
       - name: Build and upload to the draft release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
 
   summary:

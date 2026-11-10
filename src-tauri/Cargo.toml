@@ -3,7 +3,6 @@ name = "discogs-tracklist-tool"
 version = "0.1.0"
 description = "Turn cue sheets and playlists into text tracklists and CSV files."
 edition = "2021"
-rust-version = "1.77"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -11,6 +10,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
+serde_json = "1"
 
 [profile.release]
 codegen-units = 1

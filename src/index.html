@@ -16,6 +16,14 @@
   </header>
 
   <main>
+    <div id="updateBanner" class="banner" role="status" hidden>
+      <span id="updateText"></span>
+      <span class="row">
+        <button id="updateInstall">Install and restart</button>
+        <button id="updateLater" class="ghost">Later</button>
+      </span>
+    </div>
+
     <section class="card" id="inputCard">
       <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose a file or drop one here">
         <input id="file" type="file" hidden
@@ -113,6 +121,7 @@
   </main>
 
   <script src="engine.js"></script>
+  <script src="updates.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

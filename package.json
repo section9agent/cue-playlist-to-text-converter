@@ -4,12 +4,15 @@
   "private": true,
   "description": "Turn cue sheets and playlists into text tracklists and CSV files.",
   "scripts": {
-    "test": "node --test tests/engine.test.js",
+    "test": "node --test tests/engine.test.js tests/updates.test.js",
     "dev": "tauri dev",
     "build": "tauri build",
     "tauri": "tauri",
     "icons": "tauri icon app-icon.png",
-    "bump": "node scripts/bump-version.mjs"
+    "bump": "node scripts/bump-version.mjs",
+    "credits": "node scripts/generate-credits.mjs",
+    "set-repo": "node scripts/set-repo.mjs",
+    "updater-key": "node scripts/updater-key.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

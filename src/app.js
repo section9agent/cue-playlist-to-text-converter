@@ -342,4 +342,37 @@
     const saved = await saveFile('﻿' + csv.text, state.baseName + '.csv', 'csv', 'text/csv');
     if (saved && csv.warnings.length) say(els.status.textContent + ' ' + csv.warnings[csv.warnings.length - 1]);
   });
+  // ---- Update check at startup (can be turned off in Help > About) ----
+  (function startupUpdateCheck() {
+    const U = window.Updates;
+    const banner = document.getElementById('updateBanner');
+    if (!U || !banner || !U.autoEnabled()) return;
+    let found = null;
+    const text = document.getElementById('updateText');
+    const installBtn = document.getElementById('updateInstall');
+    const laterBtn = document.getElementById('updateLater');
+    laterBtn.addEventListener('click', () => { banner.hidden = true; });
+    installBtn.addEventListener('click', async () => {
+      if (!found) return;
+      installBtn.disabled = true; laterBtn.disabled = true;
+      text.textContent = 'Downloading the update...';
+      const r = await U.install(found, (p) => {
+        if (p.phase === 'download' && p.total) text.textContent = 'Downloading the update... ' + Math.min(100, Math.round((p.done / p.total) * 100)) + '%';
+        else if (p.phase === 'install') text.textContent = 'Installing. The app will restart.';
+      });
+      if (!r.ok) {
+        text.textContent = 'The update could not be installed: ' + r.message;
+        installBtn.disabled = false; laterBtn.disabled = false;
+      }
+    });
+    setTimeout(async () => {
+      try {
+        const r = await U.check();
+        if (r.state !== 'available') return; // stay quiet when up to date or offline
+        found = r;
+        text.textContent = 'Version ' + r.version + ' is available.';
+        banner.hidden = false;
+      } catch (e) { /* ignore */ }
+    }, 3000);
+  })();
 })();

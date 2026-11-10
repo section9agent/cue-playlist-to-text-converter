@@ -53,11 +53,31 @@ npm run dev       # run the app
 npm run build     # build installers for your own system
 ```
 
-The interface is plain HTML, CSS and JavaScript in `src/` with no build step. All the parsing and output formatting lives in `src/engine.js`, which is tested by `tests/engine.test.js` against the files in `samples/`. The Rust side (`src-tauri/src/main.rs`) only opens the window and writes the file chosen in the Save dialog.
+The interface is plain HTML, CSS and JavaScript in `src/` with no build step. All the parsing and output formatting lives in `src/engine.js`, which is tested by `tests/engine.test.js` against the files in `samples/`. The Rust side (`src-tauri/src/main.rs`) opens the windows, builds the menu, and writes the file chosen in the Save dialog.
 
 To change the icon, replace `app-icon.png` (1024 x 1024, a transparent background works well) and run `npm run icons`. The app identifier is set in `src-tauri/tauri.conf.json` (`dev.tracklisttool.discogs`); change it before shipping if you want your own.
 
 The window and release title use the name with a slash. The installed app and installer files are called "Cue Playlist to Text Converter", because a slash cannot be part of a file name (`productName` in `tauri.conf.json`).
+
+## About window and donations
+
+**Help > About** (on Windows and Linux the Help menu is in the window; on a Mac it is in the menu bar) shows the credits, the authors and a donation button. To change the names or the PayPal link, edit the constants at the top of `src/about.js`. The credit list of Rust libraries is generated from the dependency list by `npm run credits` (the release workflow does this automatically). It lists each library with its license and link; it does not reproduce the full license texts. If you need those, run `cargo about` (from the `cargo-about` tool) on `src-tauri`.
+
+The donation link is `https://www.paypal.com/donate/?business=<email>`. PayPal may require a Business account for this style of link, so click it once yourself and check that it works. The email address is visible to anyone who uses the app or reads the source.
+
+## Automatic updates
+
+The app asks GitHub for the latest published release when it starts and, if there is a newer version, shows a banner with **Install and restart**. Nothing is installed without that click. Users can switch the startup check off in **Help > About**; **Help > Check for Updates** always works. Draft releases are ignored, so people only get an update after you press **Publish release**. Updating works for the Windows `.exe` installer, the macOS app and the Linux AppImage.
+
+Updates must be signed, so there is a one-time setup:
+
+1. `npm install`
+2. `npm run updater-key` and choose a password. This puts the public key in `src-tauri/tauri.conf.json` (commit it) and saves the private key in a file on your computer.
+3. In GitHub, **Settings, Secrets and variables, Actions**, add `TAURI_SIGNING_PRIVATE_KEY` (the whole contents of the key file) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (your password).
+
+Keep the private key file safe. If it is lost, installed copies can no longer be updated and people would have to reinstall by hand. The release workflow stops early with a clear message if either piece is missing, and it fills in your repository name by itself.
+
+To build installers on your own computer once the key exists, set the `TAURI_SIGNING_PRIVATE_KEY` environment variable first, or build without update files: `npm run build -- --config '{"bundle":{"createUpdaterArtifacts":false}}'`.
 
 ## Releasing
 
@@ -72,4 +92,4 @@ You can also start it from the **Actions** tab with **Run workflow**. The tag is
 
 If the run fails with a permissions error, go to **Settings, Actions, General, Workflow permissions** in the repository and choose **Read and write permissions**.
 
-The builds are not code signed. The release notes explain the first-launch warnings on Windows and macOS. Signing needs your own certificates; see the Tauri signing guides if you want to add it later.
+The installers are not code signed by Windows or Apple (the update files are signed with your update key, which is a separate thing). The release notes explain the first-launch warnings on Windows and macOS. Signing needs your own certificates; see the Tauri signing guides if you want to add it later.

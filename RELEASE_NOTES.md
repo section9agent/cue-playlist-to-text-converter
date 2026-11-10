@@ -13,6 +13,9 @@ First release. Open a cue sheet or playlist and get a text tracklist, or save it
 - Lets you fix any artist, title or length in the table, and remove tracks, before you copy or save.
 - Handles UTF-8, UTF-16 and older Windows-1252 files.
 
+- **Help > About** shows the credits for the open source software the app is built on, who made it, and a PayPal link if you would like to support it.
+- **Automatic updates.** The app checks GitHub for a newer version when it starts and offers to install it with one click. Turn this off in **Help > About**, and use **Help > Check for Updates** whenever you like. Updating works with the Windows installer (`.exe`), the macOS app and the Linux AppImage; `.msi`, `.deb` and `.rpm` installs need to be updated by hand.
+
 ### Using it with Discogs
 
 Discogs does not let other programs create new releases, so paste the text into the Add Release page. It is designed to pair with the Discogs Edit Helper browser extension, whose Tracklist Import accepts pasted text.
