@@ -83,12 +83,11 @@ To build installers on your own computer once the key exists, set the `TAURI_SIG
 
 The workflow in `.github/workflows/release.yml` runs the tests, builds for Windows, macOS (Apple Silicon and Intel) and Linux, and puts everything on a **draft** release. It never publishes by itself.
 
-1. Set the version everywhere: `npm run bump -- 0.2.0`
-2. Update `RELEASE_NOTES.md` for the new version.
-3. Commit, tag and push: `git commit -am "Release v0.2.0"`, `git tag v0.2.0`, `git push && git push --tags`
-4. When the run finishes, open **Releases** on GitHub, check the draft and its files, and press **Publish release**.
+1. Go to **Actions, Release, Run workflow** on GitHub.
+2. The workflow picks the version for you: one patch step above the newest release or tag already on GitHub (0.1.0, then 0.1.1, 0.1.2, and so on), so a version clash cannot happen. It writes that number into the app and the draft's title and notes.
+3. When the run finishes, open **Releases**, check the draft and its files, and press **Publish release**.
 
-You can also start it from the **Actions** tab with **Run workflow**. The tag is always `v` plus the version in `tauri.conf.json`, and a pushed tag that does not match is rejected. The draft's description is filled from `RELEASE_NOTES.md`, so you can edit it on GitHub before publishing.
+To jump to a bigger version, for example 0.2.0, run `npm run bump -- 0.2.0` on your computer and commit it. The workflow uses the version in the files when it is higher than everything on GitHub, and counts up from there. A run that fails after creating its draft leaves that draft behind and the next run moves on to the following number, so delete stale drafts on the Releases page now and then. Pressing Publish on a draft is what makes the update banner appear for users.
 
 If the run fails with a permissions error, go to **Settings, Actions, General, Workflow permissions** in the repository and choose **Read and write permissions**.
 

@@ -4,13 +4,13 @@ name: Release
 # then attaches everything to a DRAFT release. Nothing is published until
 # you open the draft on GitHub and press "Publish release".
 #
-# Start it by pushing a tag that matches the app version (for example v0.1.0),
-# or run it by hand from the Actions tab.
+# Run it from the Actions tab with "Run workflow". Every run picks the next free
+# version number by itself (one patch step above the newest release or tag on
+# GitHub), so "release already exists" can no longer happen. The version in the
+# files is only used for the very first release, or when you set a higher one
+# yourself with "npm run bump" (for example to move from 0.1.x to 0.2.0).
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -40,23 +40,30 @@ jobs:
     outputs:
       release_id: ${{ steps.draft.outputs.release_id }}
       tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read the app version
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pick the next version number
         id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          set -euo pipefail
+          CURRENT=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          {
+            gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[].tag_name'
+            gh api "repos/$GITHUB_REPOSITORY/tags?per_page=100" --paginate --jq '.[].name'
+          } > existing.txt
+          VERSION=$(node scripts/next-version.mjs "$CURRENT" < existing.txt)
+          echo "Version in the files: $CURRENT. Existing: $(sort -u existing.txt | tr '\n' ' ')"
+          echo "This release will be v$VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Check the tag matches the app version
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          if [ "$GITHUB_REF_NAME" != "v${{ steps.version.outputs.version }}" ]; then
-            echo "::error::The tag is $GITHUB_REF_NAME but the app version is ${{ steps.version.outputs.version }}. Run 'npm run bump -- <version>', commit, and tag again."
-            exit 1
-          fi
 
       - name: Check the update signing key is set up
         env:
@@ -77,8 +84,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
+          # The notes file starts with "## Cue/Playlist to Text Converter vX.Y.Z"; keep it in step.
+          sed -i "1s/v[0-9][0-9.]*/v$VERSION/" RELEASE_NOTES.md
           existing=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
             --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\"" | head -n 1 || true)
 
@@ -163,8 +173,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Point the app at this repository and list its open source credits
+      - name: Set the version, point the app at this repository and list its open source credits
         run: |
+          node scripts/bump-version.mjs "${{ needs.create-release.outputs.version }}"
           node scripts/set-repo.mjs
           node scripts/generate-credits.mjs
 
